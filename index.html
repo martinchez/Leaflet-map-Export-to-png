@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map with Export Button</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Correct leaflet-easyPrint plugin -->
+    <script src="https://rawgit.com/rowanwins/leaflet-easyPrint/gh-pages/dist/bundle.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #export-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #export-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Export button -->
+    <button id="export-btn">Export Map</button>
+
+    <script>
+        // Initialize Leaflet map
+        const map = L.map('map').setView([35.4676, -97.5164], 12);
+
+        // Add base layer (similar to Mapbox's Satellite)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Define GeoJSON layers for Land Sections, Grid, and Counties
+        const landSections = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [-97.5164, 35.4676],
+                                [-97.5064, 35.4676],
+                                [-97.5064, 35.4576],
+                                [-97.5164, 35.4576],
+                                [-97.5164, 35.4676]
+                            ]
+                        ]
+                    },
+                    "properties": {
+                        "name": "Land Section 1"
+                    }
+                }
+            ]
+        };
+
+        const landGrid = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [-97.5264, 35.4676],
+                                [-97.5164, 35.4676],
+                                [-97.5164, 35.4576],
+                                [-97.5264, 35.4576],
+                                [-97.5264, 35.4676]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        };
+
+        const counties = {
+            "type": "FeatureCollection",
+            "features": []
+        };
+
+        // Add GeoJSON layers to map
+        const landLayer = L.geoJSON(landSections, {
+            style: { color: "#00FF00" }
+        }).addTo(map);
+
+        const gridLayer = L.geoJSON(landGrid, {
+            style: { color: "#0000FF" }
+        }).addTo(map);
+
+        const countiesLayer = L.geoJSON(counties, {
+            style: { color: "#FF7000" }
+        }).addTo(map);
+
+        // Add layer controls
+        const overlayMaps = {
+            "Land Sections": landLayer,
+            "Land Grid": gridLayer,
+            "Counties": countiesLayer
+        };
+
+        L.control.layers(null, overlayMaps).addTo(map);
+
+        // Initialize leaflet-easyPrint plugin for exporting the map
+        const printer = L.easyPrint({
+            title: 'Export Map',
+            position: 'topright',
+            exportOnly: true,
+            filename: 'LeafletMapExport',
+            sizeModes: ['Current', 'A4Landscape', 'A4Portrait'],
+            hideControlContainer: true
+        }).addTo(map);
+
+        // Trigger export when the button is clicked
+        document.getElementById('export-btn').addEventListener('click', function () {
+            printer.printMap('CurrentSize', 'LeafletMapExport');
+        });
+    </script>
+</body>
+
+</html>
